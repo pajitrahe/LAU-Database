@@ -33,7 +33,7 @@
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
-.wrap{max-width:1280px;margin:0 auto;padding:0 max(16px,env(safe-area-inset-left,0px))}
+.wrap{max-width:none;margin:0 auto;padding:0 max(16px,min(2.5vw,40px),env(safe-area-inset-left,0px))}
 header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
 header.top .row1{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:space-between;padding:10px 0 4px}
 .brand small{display:block;font-size:12px;color:var(--muted)}
@@ -960,6 +960,7 @@ function enhanceDates(root) {
     btn.addEventListener('click', () => { try { orig.showPicker(); } catch (e) { tx.focus(); } });
   });
 }
+let _rsT = 0; window.addEventListener('resize', () => { clearTimeout(_rsT); _rsT = setTimeout(() => { if (S.view === 'dash' || S.view === 'report') render(); }, 250); });
 new MutationObserver(() => enhanceDates(document)).observe(document.documentElement, { childList: true, subtree: true });
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 const fyOf = m => { const [y, mo] = m.split('-').map(Number); return mo >= 10 ? y + 1 : y; };
@@ -1100,7 +1101,7 @@ function hbars(items, colorVar, money) {
 }
 function barChart(labels, series, opts = {}) {
   // series: [{name,color,values}] stacked
-  const W = opts.w || 1200, H = opts.h || 220, pl = 52, pb = 24, pt = 8, pr = 8;
+  const W = opts.w || Math.max(900, Math.min(2600, (window.innerWidth || 1300) - 140)), H = opts.h || 220, pl = 52, pb = 24, pt = 8, pr = 8;
   const tot = labels.map((_, i) => series.reduce((a, s2) => a + (s2.values[i] || 0), 0));
   let max = Math.max(1, ...tot, ...(opts.line ? opts.line.values : [0])); const step = niceStep(max); max = Math.ceil(max / step) * step;
   const bw = (W - pl - pr) / labels.length;
@@ -1846,16 +1847,16 @@ let IMP = null;
 function vIO() {
   return `<section class="sec-h"><h2>นำเข้า / ส่งออก</h2><p>ย้ายข้อมูลจากไฟล์ Excel รายงานประจำเดือนเดิมเข้าระบบ หรือส่งออกเป็น Excel</p></section>
   <div class="grid">
-    <div class="card c7"><h3>นำเข้าไฟล์รายงานประจำเดือน (.xlsx)</h3><p class="note">ระบบอ่านเดือนจากวันที่ในชีท OPDรักษา แล้วเทียบยอดรายได้และจำนวนราย/ตัวกับยอดในไฟล์ก่อนนำเข้า การนำเข้าเดือนเดิมซ้ำจะแทนที่ข้อมูลเดือนนั้น</p>
-      <label class="drop" id="dropZone" for="impFile"><b>เลือกหรือลากไฟล์มาวาง (เลือกหลายเดือนพร้อมกันได้)</b><span class="note">อ่านชีท รายชื่อเจ้าของ, OPDรักษา, รายงานแต่งกีบ, เยี่ยมฟาร์มท่าม่วง, สรุปแม่โค, PPP ผ่าตัด, ค่าน้ำมัน, วันทำการ</span></label>
-      <input type="file" id="impFile" accept=".xlsx,.xlsm,.xls" multiple hidden>
-      <div id="impOut">${IMP ? impPreview() : ''}</div></div>
     <div class="card c12"><h3>สำรองและกู้คืนข้อมูล</h3>
       <p class="note">${window.LAM_LOCAL ? 'ข้อมูลทั้งหมดเก็บอยู่ในเบราว์เซอร์ของเครื่องนี้ ถ้าเครื่องเสีย ล้างเบราว์เซอร์ หรือถอนแอป ข้อมูลจะหาย ควรสำรองเป็นไฟล์อย่างน้อยสัปดาห์ละครั้ง หรือเลือกโฟลเดอร์ให้ระบบสำรองอัตโนมัติ (แนะนำโฟลเดอร์ที่ซิงก์กับ Google Drive / OneDrive)' : 'ดาวน์โหลดข้อมูลทั้งหมดเป็นไฟล์ .json เพื่อย้ายไปใช้แอปแบบติดตั้งในเครื่อง (PWA) หรือเก็บสำรอง'}</p>
       <div class="row"><button class="btn" data-act="backup">ดาวน์โหลดไฟล์สำรอง (.json)</button>
       ${window.LAM_LOCAL ? `<label class="btn plain" for="restoreFile">กู้คืนจากไฟล์สำรอง</label><input type="file" id="restoreFile" accept=".json,application/json" hidden>
       ${window.showDirectoryPicker ? '<button class="btn ghost" data-act="backupdir">เลือกโฟลเดอร์สำรองอัตโนมัติ</button>' : ''}` : ''}
       <span class="note" id="backupInfo"></span></div></div>
+    <div class="card c7"><h3>นำเข้าไฟล์รายงานประจำเดือน (.xlsx)</h3><p class="note">ระบบอ่านเดือนจากวันที่ในชีท OPDรักษา แล้วเทียบยอดรายได้และจำนวนราย/ตัวกับยอดในไฟล์ก่อนนำเข้า การนำเข้าเดือนเดิมซ้ำจะแทนที่ข้อมูลเดือนนั้น</p>
+      <label class="drop" id="dropZone" for="impFile"><b>เลือกหรือลากไฟล์มาวาง (เลือกหลายเดือนพร้อมกันได้)</b><span class="note">อ่านชีท รายชื่อเจ้าของ, OPDรักษา, รายงานแต่งกีบ, เยี่ยมฟาร์มท่าม่วง, สรุปแม่โค, PPP ผ่าตัด, ค่าน้ำมัน, วันทำการ</span></label>
+      <input type="file" id="impFile" accept=".xlsx,.xlsm,.xls" multiple hidden>
+      <div id="impOut">${IMP ? impPreview() : ''}</div></div>
     <div class="card c5"><h3>ส่งออก</h3>
       <p class="note">ไฟล์ Excel ของเดือนที่เลือก ประกอบด้วยชีท OPDรักษา (คอลัมน์ตรงกับไฟล์เดิม คัดลอกไปวางในแม่แบบ Excel ได้) ข้อมูลแต่งกีบ และรายงานทุกฉบับ</p>
       <button class="btn" data-act="export">ส่งออก Excel ${mLabel(S.month)}</button>

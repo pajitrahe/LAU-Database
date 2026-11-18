@@ -1,5 +1,5 @@
 /* Service worker: keeps the app usable offline. Data is not here: it lives in IndexedDB. */
-const VERSION = 'lam-202611181718';
+const VERSION = 'lam-202611181746';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png'];
 const CDN = ['https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'];
 self.addEventListener('install', e => {
