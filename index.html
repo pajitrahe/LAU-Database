@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0d6a56">
-<link rel="icon" href="icon-192.png">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192-v2.png">
+<link rel="apple-touch-icon" href="apple-touch-icon-v2.png">
 <title>LAU Database · ระบบงานแผนกสัตว์ใหญ่</title>
 <meta name="application-name" content="LAU Database">
 <meta name="apple-mobile-web-app-title" content="LAU Database">
@@ -2139,7 +2139,7 @@ function vEntry() {
       </div>
       <div class="row"><button type="button" class="btn sm plain" data-act="allcash">รับเงินสดเต็มจำนวน</button><button type="button" class="btn sm plain" data-act="allcredit">ค้างชำระทั้งหมด</button></div>
       <h3 style="margin-top:6px">PPP</h3>
-      ${pAuto ? pppLinesHtml(p) : `<div class="notice warn" style="margin-bottom:8px">${esc(mLabel(S.month))} อยู่ก่อน ${esc(mLabel(C.PPP_AUTO_FROM))} จึงใช้<b>เกณฑ์ PPP เดิม</b> ต้องเลือกกลุ่มเองให้ครบทุกรายการที่มีในใบ (เช่น รักษา + D,U,L) ${(() => { const a = C.pppAuto(r).calc; return Math.abs(a - p.calc) > 0.01 ? `· ถ้าคิดตามช่องเงินจะได้ ${fmt(a, 2)} บาท ตรวจกลุ่มที่เลือกอีกครั้ง` : ''; })()}</div><div class="grid">
+      ${pAuto ? pppLinesHtml(p) : `<div class="notice warn" style="margin-bottom:8px">${esc(mLabel(S.month))} อยู่ก่อน ${esc(mLabel(C.PPP_AUTO_FROM))} จึงใช้<b>เกณฑ์ PPP เดิม</b> ต้องเลือกกลุ่มเองให้ครบทุกรายการที่มีในใบ (เช่น รักษา + D,U,L) ${(() => { const a = C.pppAuto(r).calc; return C.rowTotal(r) > 0 && Math.abs(a - p.calc) > 0.01 ? `· ถ้าคิดตามช่องเงินจะได้ ${fmt(a, 2)} บาท ตรวจกลุ่มที่เลือกอีกครั้ง` : ''; })()}</div><div class="grid">
         <div class="fld c6"><label for="f_AY">กลุ่ม (AY)</label><select id="f_AY" data-f="AY"><option value="">—</option>${Object.entries(C.AY).map(([k, t]) => `<option value="${k}" ${n(r.AY) === +k ? 'selected' : ''}>${k} ${t}</option>`).join('')}</select></div>
         <div class="fld c6"><label for="f_AZ">กลุ่มเพิ่ม (AZ)</label><select id="f_AZ" data-f="AZ"><option value="">—</option>${Object.entries(C.AZ).map(([k, t]) => `<option value="${k}" ${n(r.AZ) === +k ? 'selected' : ''}>${k} ${t}</option>`).join('')}</select></div>
       </div>`}

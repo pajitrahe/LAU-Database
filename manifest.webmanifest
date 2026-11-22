@@ -1,5 +1,5 @@
 {
-  "name": "LAU Database · ระบบงานแผนกสัตว์ใหญ่ รพ.สัตว์ มก. หนองโพ",
+  "name": "LAU Database",
   "short_name": "LAU Database",
   "description": "ลง OPD แต่งกีบ เยี่ยมฟาร์ม ลูกหนี้ และออกรายงานประจำเดือน เก็บข้อมูลไว้ในเครื่องนี้",
   "lang": "th",
@@ -10,20 +10,21 @@
   "theme_color": "#0d6a56",
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "icon-192-v2.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "icon-512.png",
+      "src": "icon-512-v2.png",
       "sizes": "512x512",
       "type": "image/png"
     },
     {
-      "src": "icon-maskable-512.png",
+      "src": "icon-maskable-512-v2.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
     }
-  ]
+  ],
+  "id": "./index.html"
 }
