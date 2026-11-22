@@ -1,11 +1,11 @@
 /* Service worker: keeps the app usable offline. Data is not here: it lives in IndexedDB. */
-const VERSION = 'lam-202611221344';
+const VERSION = 'lam-202611221734';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png'];
 const CDN = ['https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'];
 self.addEventListener('install', e => {
   e.waitUntil((async () => {
     const c = await caches.open(VERSION);
-    await c.addAll(SHELL);
+    await c.addAll(SHELL.map(u => new Request(u, { cache: 'reload' })));
     for (const u of CDN) { try { const r = await fetch(u, { mode: 'cors' }); if (r.ok) await c.put(u, r); } catch (err) {} }
     self.skipWaiting();
   })());
@@ -18,7 +18,7 @@ self.addEventListener('fetch', e => {
   const url = new URL(req.url);
   // page: network first so updates arrive, cache when offline
   if (req.mode === 'navigate' || url.pathname.endsWith('/index.html')) {
-    e.respondWith((async () => { try { const r = await fetch(req); const c = await caches.open(VERSION); c.put('./index.html', r.clone()); return r; } catch (err) { return (await caches.match('./index.html')) || (await caches.match('./')); } })());
+    e.respondWith((async () => { try { const r = await fetch(req, { cache: 'no-cache' }); const c = await caches.open(VERSION); c.put('./index.html', r.clone()); return r; } catch (err) { return (await caches.match('./index.html')) || (await caches.match('./')); } })());
     return;
   }
   // everything else (icons, Excel library, fonts): cache first, then network and keep a copy
