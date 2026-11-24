@@ -2121,7 +2121,7 @@ function vEntry() {
     ${editing ? `<button class="btn plain" data-act="newdraft">ยกเลิกการแก้ไข</button>` : ''}</section>
   <div id="ocrBox"></div>
   <form id="opdForm" class="grid" autocomplete="off">
-    <div class="card c7"><h3>ข้อมูลทั่วไป</h3>
+    <div class="card c12"><h3>ข้อมูลทั่วไป</h3>
       <div class="grid">
         <div class="fld c4"><label for="f_D">วันที่</label><input type="date" id="f_D" data-f="D" value="${esc(r.D)}"></div>
         <div class="fld c4"><label for="f_O">เล่มที่/เลขที่ OPD</label><input type="text" id="f_O" data-f="O" value="${esc(r.O)}" placeholder="เช่น 1092/38"></div>
@@ -2140,24 +2140,6 @@ function vEntry() {
         <div class="fld c6"><span class="lab">ช่วงเวลา</span>${seg('f_H', 'H', [[1, 'เวลาทำการ'], [2, 'วันหยุด'], [3, 'นอกเวลา']], r.H)}</div>
         <div class="fld c6"><span class="lab">ประเภทงาน</span>${seg('f_I', 'I', [[1, 'รักษา'], [2, 'ผ่าตัด']], r.I)}</div>
       </div>
-    </div>
-    <div class="card c5"><h3>สรุปเงิน</h3>
-      <div class="sum-box"><span>รวมทั้งหมด</span><span class="big">${fmt(tot) || 0}</span>
-        <span>เงินสด + ค้างชำระ</span><span>${fmt(n(r.AG) + n(r.AH)) || 0}</span>
-        <span>ส่วนต่าง</span><span>${Math.abs(bal) > 0.001 ? `<span class="pill bad">${fmt(bal)}</span>` : '<span class="pill good">ตรง</span>'}</span></div>
-      <div class="grid">
-        <div class="fld c6"><label for="f_AG">รับเงินสด</label><input type="number" id="f_AG" data-f="AG" value="${esc(r.AG)}" min="0"></div>
-        <div class="fld c6"><label for="f_AH">ค้างชำระ</label><input type="number" id="f_AH" data-f="AH" value="${esc(r.AH)}" min="0"></div>
-        ${n(r.AH) > 0 ? `<div class="fld c12"><label for="f_INV">เลขที่ใบแจ้งหนี้ (INV) <span class="muted">· ส่งไปแท็บลูกหนี้</span></label><input type="text" id="f_INV" data-f="INV" value="${esc(r.INV)}" placeholder="เช่น INV69-0123" autocomplete="off">${invTaken(r.INV, r.B) ? `<span class="note" style="color:var(--bad)">เลขนี้ใช้กับลูกหนี้ ${esc(invTaken(r.INV, r.B).customer)} แล้ว</span>` : ''}${(() => { const x = invShared(r.INV, r.B, 'opd', S.editId); return x ? `<span class="note">รวมกับใบแจ้งหนี้เดิม ${x.others.length} ใบ (${esc(x.others.map(p => p.ref || '-').join(', '))}) ยอดรวมจะเป็น ${fmt(x.others.reduce((a, p) => a + n(p.amount), 0) + n(r.AH))} บาท</span>` : ''; })()}</div>` : ''}
-      </div>
-      <div class="row"><button type="button" class="btn sm plain" data-act="allcash">รับเงินสดเต็มจำนวน</button><button type="button" class="btn sm plain" data-act="allcredit">ค้างชำระทั้งหมด</button></div>
-      <h3 style="margin-top:6px">PPP</h3>
-      ${pAuto ? pppLinesHtml(p) : `<div class="notice warn" style="margin-bottom:8px">${esc(mLabel(S.month))} อยู่ก่อน ${esc(mLabel(C.PPP_AUTO_FROM))} จึงใช้<b>เกณฑ์ PPP เดิม</b> ต้องเลือกกลุ่มเองให้ครบทุกรายการที่มีในใบ (เช่น รักษา + D,U,L) ${(() => { const a = C.pppAuto(r).calc; return C.rowTotal(r) > 0 && Math.abs(a - p.calc) > 0.01 ? `· ถ้าคิดตามช่องเงินจะได้ ${fmt(a, 2)} บาท ตรวจกลุ่มที่เลือกอีกครั้ง` : ''; })()}</div><div class="grid">
-        <div class="fld c6"><label for="f_AY">กลุ่ม (AY)</label><select id="f_AY" data-f="AY"><option value="">—</option>${Object.entries(C.AY).map(([k, t]) => `<option value="${k}" ${n(r.AY) === +k ? 'selected' : ''}>${k} ${t}</option>`).join('')}</select></div>
-        <div class="fld c6"><label for="f_AZ">กลุ่มเพิ่ม (AZ)</label><select id="f_AZ" data-f="AZ"><option value="">—</option>${Object.entries(C.AZ).map(([k, t]) => `<option value="${k}" ${n(r.AZ) === +k ? 'selected' : ''}>${k} ${t}</option>`).join('')}</select></div>
-      </div>`}
-      <div class="row"><span>ค่า PPP ใบนี้</span><b class="mono">${fmt(p.calc, 2) || 0}</b>${p.calc < 0 ? '<span class="pill warn">กลุ่มรักษา หักค่าบริการ 50 บาท แต่ช่องค่าบริการว่าง</span>' : ''}${p.override ? `<span class="pill warn">ใช้ค่ากำหนดเอง ${fmt(p.total, 2)}</span>` : ''}</div>
-      <div class="fld"><label for="f_pppOv">กำหนด PPP เอง (เว้นว่างถ้าใช้สูตร)</label><input type="number" id="f_pppOv" data-f="pppOv" value="${esc(r.pppOv)}"></div>
     </div>
     <div class="card c12"><h3>การวินิจฉัย</h3>
       <div class="fld"><span class="lab">อุบัติการณ์โรค (ติ๊กตามใบ OPD เลือกได้สูงสุด 4)</span>
@@ -2187,6 +2169,24 @@ function vEntry() {
     </div>
     <div class="card c5"><h3>จำนวนตัว</h3>
       <div class="mgrid">${C.COUNTS.map(([k, t]) => `<div class="fld"><label for="f_${k}">${t}</label><input type="number" id="f_${k}" data-f="${k}" value="${esc(r[k])}" min="0"></div>`).join('')}</div>
+    </div>
+    <div class="card c12"><h3>สรุปเงิน</h3>
+      <div class="sum-box"><span>รวมทั้งหมด</span><span class="big">${fmt(tot) || 0}</span>
+        <span>เงินสด + ค้างชำระ</span><span>${fmt(n(r.AG) + n(r.AH)) || 0}</span>
+        <span>ส่วนต่าง</span><span>${Math.abs(bal) > 0.001 ? `<span class="pill bad">${fmt(bal)}</span>` : '<span class="pill good">ตรง</span>'}</span></div>
+      <div class="grid">
+        <div class="fld c6"><label for="f_AG">รับเงินสด</label><input type="number" id="f_AG" data-f="AG" value="${esc(r.AG)}" min="0"></div>
+        <div class="fld c6"><label for="f_AH">ค้างชำระ</label><input type="number" id="f_AH" data-f="AH" value="${esc(r.AH)}" min="0"></div>
+        ${n(r.AH) > 0 ? `<div class="fld c12"><label for="f_INV">เลขที่ใบแจ้งหนี้ (INV) <span class="muted">· ส่งไปแท็บลูกหนี้</span></label><input type="text" id="f_INV" data-f="INV" value="${esc(r.INV)}" placeholder="เช่น INV69-0123" autocomplete="off">${invTaken(r.INV, r.B) ? `<span class="note" style="color:var(--bad)">เลขนี้ใช้กับลูกหนี้ ${esc(invTaken(r.INV, r.B).customer)} แล้ว</span>` : ''}${(() => { const x = invShared(r.INV, r.B, 'opd', S.editId); return x ? `<span class="note">รวมกับใบแจ้งหนี้เดิม ${x.others.length} ใบ (${esc(x.others.map(p => p.ref || '-').join(', '))}) ยอดรวมจะเป็น ${fmt(x.others.reduce((a, p) => a + n(p.amount), 0) + n(r.AH))} บาท</span>` : ''; })()}</div>` : ''}
+      </div>
+      <div class="row"><button type="button" class="btn sm plain" data-act="allcash">รับเงินสดเต็มจำนวน</button><button type="button" class="btn sm plain" data-act="allcredit">ค้างชำระทั้งหมด</button></div>
+      <h3 style="margin-top:6px">PPP</h3>
+      ${pAuto ? pppLinesHtml(p) : `<div class="notice warn" style="margin-bottom:8px">${esc(mLabel(S.month))} อยู่ก่อน ${esc(mLabel(C.PPP_AUTO_FROM))} จึงใช้<b>เกณฑ์ PPP เดิม</b> ต้องเลือกกลุ่มเองให้ครบทุกรายการที่มีในใบ (เช่น รักษา + D,U,L) ${(() => { const a = C.pppAuto(r).calc; return C.rowTotal(r) > 0 && Math.abs(a - p.calc) > 0.01 ? `· ถ้าคิดตามช่องเงินจะได้ ${fmt(a, 2)} บาท ตรวจกลุ่มที่เลือกอีกครั้ง` : ''; })()}</div><div class="grid">
+        <div class="fld c6"><label for="f_AY">กลุ่ม (AY)</label><select id="f_AY" data-f="AY"><option value="">—</option>${Object.entries(C.AY).map(([k, t]) => `<option value="${k}" ${n(r.AY) === +k ? 'selected' : ''}>${k} ${t}</option>`).join('')}</select></div>
+        <div class="fld c6"><label for="f_AZ">กลุ่มเพิ่ม (AZ)</label><select id="f_AZ" data-f="AZ"><option value="">—</option>${Object.entries(C.AZ).map(([k, t]) => `<option value="${k}" ${n(r.AZ) === +k ? 'selected' : ''}>${k} ${t}</option>`).join('')}</select></div>
+      </div>`}
+      <div class="row"><span>ค่า PPP ใบนี้</span><b class="mono">${fmt(p.calc, 2) || 0}</b>${p.calc < 0 ? '<span class="pill warn">กลุ่มรักษา หักค่าบริการ 50 บาท แต่ช่องค่าบริการว่าง</span>' : ''}${p.override ? `<span class="pill warn">ใช้ค่ากำหนดเอง ${fmt(p.total, 2)}</span>` : ''}</div>
+      <div class="fld"><label for="f_pppOv">กำหนด PPP เอง (เว้นว่างถ้าใช้สูตร)</label><input type="number" id="f_pppOv" data-f="pppOv" value="${esc(r.pppOv)}"></div>
     </div>
     <div class="c12 row end">
       ${editing ? `<button type="button" class="btn danger" data-act="delopd">ลบใบนี้</button><span class="sp"></span>` : ''}
