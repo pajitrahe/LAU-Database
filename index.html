@@ -509,8 +509,11 @@ const CORE = (() => {
   // ผ่าตัด: ผู้ผ่า 60% ผู้ช่วย 30% ผู้วางยา 10% คงที่ ช่องที่ไม่ได้เลือกชื่อ ส่วนนั้นไม่มีผู้ได้รับ · ชื่อซ้ำหลายช่องได้ทุกส่วนที่มีชื่อ
   function surgSplit(x) { return [[x.surgeon, 0.6], [x.assist, 0.3], [x.anesth, 0.1]]; }
   function surgEntries(ms, opd) {
-    const list = (ms.surg || []).map((x, i) => ({ ...x, _i: i }));
-    (opd || []).filter(r => n(r.S) > 0 && (n(r.I) === 2 || pppAutoMonth(r))).forEach(r => {
+    const src = (opd || []).filter(r => n(r.S) > 0 && (n(r.I) === 2 || pppAutoMonth(r)));
+    // รายการที่ผูกกับใบ OPD (opdId) ใช้ยอด/วันที่/เลขที่จากใบเสมอ · ถ้าใบถูกลบหรือไม่มีค่าศัลยกรรมแล้ว ไม่นับ
+    const list = (ms.surg || []).map((x, i) => ({ ...x, _i: i })).filter(x => !x.opdId || src.some(r => r._id === x.opdId))
+      .map(x => { if (!x.opdId) return x; const r = src.find(q => q._id === x.opdId); return { ...x, fee: n(r.S), date: r.D, opd: s(r.O) }; });
+    src.forEach(r => {
       const e = list.find(x => (x.opdId && x.opdId === r._id) || (!x.opdId && s(x.opd) && s(x.opd) === s(r.O)));
       if (e) { e.linked = true; e.owner = s(r.B); return; }
       list.push({ auto: true, opdId: r._id || null, date: r.D, opd: s(r.O), fee: n(r.S), surgeon: s(r.P), assist: '', anesth: '', owner: s(r.B) });
@@ -3182,7 +3185,7 @@ document.addEventListener('click', async e => {
   else if (act === 'pickowner') setField('B', b.dataset.n);
   else if (act === 'addbreed') { const r = draft(); if (!has(r.J)) { toast('เลือกชนิดสัตว์ก่อน'); return; } const list = breeds().map(x => x.slice()); list.push([s(r.BR), n(r.J), has(r.F) ? n(r.F) : null, /^[\x00-\x7F]+$/.test(s(r.BR)) ? s(r.BR) : '', []]); await saveBreeds(list); toast('เพิ่มพันธุ์ "' + s(r.BR) + '" แล้ว'); }
   else if (act === 'newowner') { ownEdit = { n: s(draft().B), p: 1, pv: 'ราชบุรี', k: 1, s: 1, ss: [1], d: todayISO(), _back: true }; go('owners'); }
-  else if (act === 'delopd') { if (!confirmOnce('del' + S.editId, 'กดลบอีกครั้งเพื่อยืนยัน')) return; await del('opd', S.editId); await syncInvoice('opd', S.editId, { amount: 0 }); S.editId = null; S.draft = null; toast('ลบแล้ว'); go('list'); }
+  else if (act === 'delopd') { if (!confirmOnce('del' + S.editId, 'กดลบอีกครั้งเพื่อยืนยัน')) return; const delId = S.editId; await del('opd', delId); await syncInvoice('opd', delId, { amount: 0 }); if ((S.mset && S.mset.surg || []).some(x => x.opdId === delId)) await saveMs(ms => { ms.surg = (ms.surg || []).filter(x => x.opdId !== delId); }); S.editId = null; S.draft = null; toast('ลบแล้ว'); go('list'); }
   else if (act === 'newhoof') { S.hoofEdit = null; render(); }
   else if (act === 'delhoof') { if (!confirmOnce('dh', 'กดลบอีกครั้งเพื่อยืนยัน')) return; await del('hoof', S.hoofEdit._id); await syncInvoice('hoof', S.hoofEdit._id, { amount: 0 }); S.hoofEdit = null; toast('ลบแล้ว'); render(); }
   else if (act === 'tmadd') { const tm = JSON.parse(JSON.stringify(S.tm || { rows: [], rate: 20, consult: 0 })); tm.rows.push({ B: '', name: '' }); await saveTm(tm); }
