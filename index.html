@@ -164,7 +164,44 @@ tr.auto td{background:color-mix(in srgb,var(--accent,#0d6a56) 5%,transparent)}
 .ktgt{font-size:12.5px;color:var(--ink-2)}.klbl{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-2)}.kdef{font-size:12px;color:var(--ink-2);margin:2px 0 0}
 details.exp summary{cursor:pointer;padding:2px 0}details.exp .grid{margin-top:8px}
 .seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
+.zoomctl{display:inline-flex;gap:2px}.zoomctl .btn{min-width:34px;padding-left:6px;padding-right:6px}.zoomctl .btn:disabled{opacity:.4}
 </style>
+<script>
+(function () {
+  var KEY = 'lam-theme', root = document.documentElement;
+  function sysDark() { return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches); }
+  function stored() { try { return localStorage.getItem(KEY); } catch (e) { return null; } }
+  function isDark() { var t = root.getAttribute('data-theme'); return t ? t === 'dark' : sysDark(); }
+  function paint() {
+    var b = document.getElementById('themeBtn'); var d = isDark();
+    if (b) { b.textContent = d ? '☀ สว่าง' : '☾ มืด'; b.title = d ? 'เปลี่ยนเป็นธีมสว่าง' : 'เปลี่ยนเป็นธีมมืด'; }
+    var m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', d ? '#0f1512' : '#0d6a56');
+  }
+  var t = stored(); if (t === 'dark' || t === 'light') root.setAttribute('data-theme', t);
+  var ZK = 'lam-zoom', STEPS = [0.9, 1, 1.1, 1.2, 1.35, 1.5];
+  function getZ() { var z = 1; try { z = parseFloat(localStorage.getItem(ZK)) || 1; } catch (e) {} return STEPS.indexOf(z) >= 0 ? z : 1; }
+  function setZ(z) { root.style.zoom = z === 1 ? '' : String(z); try { localStorage.setItem(ZK, String(z)); } catch (e) {}
+    var u = document.getElementById('zoomUp'), d = document.getElementById('zoomDn'); var pc = Math.round(z * 100) + '%';
+    if (u) { u.disabled = z >= STEPS[STEPS.length - 1]; u.title = 'เพิ่มขนาดตัวอักษร (ตอนนี้ ' + pc + ')'; }
+    if (d) { d.disabled = z <= STEPS[0]; d.title = 'ลดขนาดตัวอักษร (ตอนนี้ ' + pc + ')'; } }
+  setZ(getZ());
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('#zoomUp,#zoomDn'); if (!b) return;
+    var i = STEPS.indexOf(getZ()); i = Math.max(0, Math.min(STEPS.length - 1, i + (b.id === 'zoomUp' ? 1 : -1)));
+    setZ(STEPS[i]); window.dispatchEvent(new Event('resize'));
+  });
+  document.addEventListener('DOMContentLoaded', function () { setZ(getZ()); });
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest || !e.target.closest('#themeBtn')) return;
+    var next = isDark() ? 'light' : 'dark'; root.setAttribute('data-theme', next);
+    try { localStorage.setItem(KEY, next); } catch (err) {}
+    paint(); window.dispatchEvent(new Event('themechange'));
+  });
+  if (window.matchMedia) { var mq = window.matchMedia('(prefers-color-scheme: dark)'); (mq.addEventListener ? mq.addEventListener('change', paint) : mq.addListener && mq.addListener(paint)); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', paint); else paint();
+})();
+</script>
+
 </head>
 <body>
 <header class="top">
@@ -175,6 +212,8 @@ details.exp summary{cursor:pointer;padding:2px 0}details.exp .grid{margin-top:8p
         <label for="mSel">เดือน</label>
         <select id="mSel" style="width:auto"></select>
         <span id="syncState" class="pill">กำลังเชื่อมต่อ…</span>
+        <span class="zoomctl" role="group" aria-label="ขนาดตัวอักษร"><button type="button" class="btn sm plain" id="zoomDn" title="ลดขนาดตัวอักษร">ก−</button><button type="button" class="btn sm plain" id="zoomUp" title="เพิ่มขนาดตัวอักษร">ก+</button></span>
+        <button type="button" class="btn sm plain" id="themeBtn" title="สลับธีมมืด/สว่าง" aria-label="สลับธีมมืด/สว่าง">☾</button>
         <button type="button" class="btn sm plain" data-act="go" data-v="help" title="คู่มือการใช้งานและสารบัญตัวย่อ">คู่มือ</button>
       </div>
     </div>
@@ -2025,7 +2064,7 @@ function dashMonth() {
   const fyBlock = S.fy && S.fy.fy === fyOf(S.month) ? fyChart() : `<div class="row"><button class="btn ghost" data-act="loadfy">โหลดแนวโน้มทั้งปีงบประมาณ ${fyOf(S.month) + 543}</button><span class="note">ดึงข้อมูลทุกเดือนของปีงบประมาณมาคำนวณ</span></div>`;
   const warn = dataWarnings(R);
   return `
-  ${empty ? `<div class="notice warn">ยังไม่มีข้อมูลของเดือนนี้ เริ่มได้ที่แท็บ <b>ลง OPD</b> หรือ <b>นำเข้า / ส่งออก</b> (นำเข้าไฟล์รายงานประจำเดือนเดิม)</div>` : ''}
+  ${empty ? `<div class="notice warn">ยังไม่มีข้อมูลของเดือนนี้ เริ่มได้ที่แท็บ <b>ลงบันทึก OPD</b> หรือ <b>นำเข้าข้อมูล</b> (นำเข้าไฟล์รายงานประจำเดือนเดิม)</div>` : ''}
   ${warn}
   <div class="kpis">
     <div class="kpi"><span class="lab">รายได้รวม</span><span class="val">${fmt(K.revenue)}<small>บาท</small></span><span class="sub">ในเวลา ${fmt(K.revenueIn)} · นอกเวลา ${fmt(K.revenueOut)}</span></div>
