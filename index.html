@@ -27,7 +27,7 @@
   --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
   --r:10px; color-scheme:light;
 }
-@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+@media (prefers-color-scheme: dark){ :root:not([data-theme]){
   --bg:#111614; --surface:#181e1b; --sunk:#141917; --ink:#e9eee9; --ink-2:#b6c0b9; --muted:#8b968f; --line:#2a332e;
   --accent:#43b796; --accent-ink:#0b1a15; --accent-soft:#1b3830; --good:#4cc27a; --bad:#f07466; --warn:#e3a14a; --warn-soft:#3a2a14; --bad-soft:#3d1c19;
   --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#9085e9; color-scheme:dark } }
@@ -35,6 +35,20 @@
   --bg:#111614; --surface:#181e1b; --sunk:#141917; --ink:#e9eee9; --ink-2:#b6c0b9; --muted:#8b968f; --line:#2a332e;
   --accent:#43b796; --accent-ink:#0b1a15; --accent-soft:#1b3830; --good:#4cc27a; --bad:#f07466; --warn:#e3a14a; --warn-soft:#3a2a14; --bad-soft:#3d1c19;
   --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#9085e9; color-scheme:dark }
+:root[data-theme="cream"]{
+  --bg:#f3efe4; --surface:#fbf8f0; --sunk:#ece6d8; --ink:#23201a; --ink-2:#4f4a3f; --muted:#6f695c; --line:#ddd5c4;
+  --accent:#0d6a56; --accent-ink:#ffffff; --accent-soft:#e1e9da; --good:#126f35; --bad:#b42318; --warn:#9a5205; --warn-soft:#f7e8cf; --bad-soft:#f5dfd8; color-scheme:light }
+:root[data-theme="mid"]{
+  --bg:#c9d1cc; --surface:#dae1dc; --sunk:#c1c9c4; --ink:#111915; --ink-2:#2c3731; --muted:#47534c; --line:#a7b2ab;
+  --accent:#0a5444; --accent-ink:#ffffff; --accent-soft:#b8d1c6; --good:#0f5f2e; --bad:#8f1a12; --warn:#7a4103; --warn-soft:#e4d2b2; --bad-soft:#e3c3bd;
+  --s1:#1f63b5; --s2:#c4501f; --s3:#13845b; --s4:#b07a00; --s5:#c2507e; --s6:#4f3fb5; color-scheme:light }
+:root[data-theme="dim"]{
+  --bg:#2a302d; --surface:#333a36; --sunk:#2e3431; --ink:#eef2ee; --ink-2:#cdd5cf; --muted:#a9b3ac; --line:#4a544e;
+  --accent:#5ac8a7; --accent-ink:#0b1a15; --accent-soft:#2b4a40; --good:#64d48f; --bad:#f59284; --warn:#ecb46a; --warn-soft:#4a3820; --bad-soft:#4d2a26;
+  --s1:#4a95ee; --s2:#e2683a; --s3:#22b07e; --s4:#d69410; --s5:#df6593; --s6:#9d93ef; color-scheme:dark }
+.themectl{display:inline-flex;align-items:center;gap:6px;padding:2px 8px;border:1px solid var(--line);border-radius:999px;background:var(--surface);font-size:13px;color:var(--ink-2)}
+.themectl input[type=range]{width:96px;accent-color:var(--accent);margin:0;cursor:pointer}
+.themectl .tl{min-width:52px;text-align:center;font-size:12px}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
@@ -171,13 +185,22 @@ details.exp summary{cursor:pointer;padding:2px 0}details.exp .grid{margin-top:8p
   var KEY = 'lam-theme', root = document.documentElement;
   function sysDark() { return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches); }
   function stored() { try { return localStorage.getItem(KEY); } catch (e) { return null; } }
-  function isDark() { var t = root.getAttribute('data-theme'); return t ? t === 'dark' : sysDark(); }
+  var LV = ['light', 'cream', 'mid', 'dim', 'dark'], LBL = ['สว่าง', 'สว่างนวล', 'กลาง', 'มืดนวล', 'มืด'], META = ['#0d6a56', '#0d6a56', '#0a5444', '#2a302d', '#111614'];
+  function level() { var t = root.getAttribute('data-theme'); var i = LV.indexOf(t); return i >= 0 ? i + 1 : (sysDark() ? 5 : 1); }
   function paint() {
-    var b = document.getElementById('themeBtn'); var d = isDark();
-    if (b) { b.textContent = d ? '☀ สว่าง' : '☾ มืด'; b.title = d ? 'เปลี่ยนเป็นธีมสว่าง' : 'เปลี่ยนเป็นธีมมืด'; }
-    var m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', d ? '#0f1512' : '#0d6a56');
+    var lv = level(), r = document.getElementById('themeRange'), l = document.getElementById('themeLbl');
+    if (r) { r.value = lv; r.setAttribute('aria-valuetext', LBL[lv - 1]); } if (l) l.textContent = LBL[lv - 1];
+    var m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', META[lv - 1]);
   }
-  var t = stored(); if (t === 'dark' || t === 'light') root.setAttribute('data-theme', t);
+  var t = stored(); if (LV.indexOf(t) >= 0) root.setAttribute('data-theme', t);
+  document.addEventListener('input', function (e) {
+    if (!e.target || e.target.id !== 'themeRange') return;
+    var v = LV[(+e.target.value || 1) - 1]; root.setAttribute('data-theme', v);
+    try { localStorage.setItem(KEY, v); } catch (err) {}
+    paint(); window.dispatchEvent(new Event('themechange'));
+  });
+  if (window.matchMedia) { var mq = window.matchMedia('(prefers-color-scheme: dark)'); (mq.addEventListener ? mq.addEventListener('change', paint) : mq.addListener && mq.addListener(paint)); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', paint); else paint();
   var ZK = 'lam-zoom', STEPS = [0.9, 1, 1.1, 1.2, 1.35, 1.5];
   function getZ() { var z = 1; try { z = parseFloat(localStorage.getItem(ZK)) || 1; } catch (e) {} return STEPS.indexOf(z) >= 0 ? z : 1; }
   function setZ(z) { root.style.zoom = z === 1 ? '' : String(z); try { localStorage.setItem(ZK, String(z)); } catch (e) {}
@@ -191,14 +214,6 @@ details.exp summary{cursor:pointer;padding:2px 0}details.exp .grid{margin-top:8p
     setZ(STEPS[i]); window.dispatchEvent(new Event('resize'));
   });
   document.addEventListener('DOMContentLoaded', function () { setZ(getZ()); });
-  document.addEventListener('click', function (e) {
-    if (!e.target.closest || !e.target.closest('#themeBtn')) return;
-    var next = isDark() ? 'light' : 'dark'; root.setAttribute('data-theme', next);
-    try { localStorage.setItem(KEY, next); } catch (err) {}
-    paint(); window.dispatchEvent(new Event('themechange'));
-  });
-  if (window.matchMedia) { var mq = window.matchMedia('(prefers-color-scheme: dark)'); (mq.addEventListener ? mq.addEventListener('change', paint) : mq.addListener && mq.addListener(paint)); }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', paint); else paint();
 })();
 </script>
 
@@ -213,7 +228,7 @@ details.exp summary{cursor:pointer;padding:2px 0}details.exp .grid{margin-top:8p
         <select id="mSel" style="width:auto"></select>
         <span id="syncState" class="pill">กำลังเชื่อมต่อ…</span>
         <span class="zoomctl" role="group" aria-label="ขนาดตัวอักษร"><button type="button" class="btn sm plain" id="zoomDn" title="ลดขนาดตัวอักษร">ก−</button><button type="button" class="btn sm plain" id="zoomUp" title="เพิ่มขนาดตัวอักษร">ก+</button></span>
-        <button type="button" class="btn sm plain" id="themeBtn" title="สลับธีมมืด/สว่าง" aria-label="สลับธีมมืด/สว่าง">☾</button>
+        <label class="themectl" title="ปรับธีม: เลื่อนไปซ้ายสว่าง เลื่อนไปขวามืด"><span aria-hidden="true">☀</span><input type="range" id="themeRange" min="1" max="5" step="1" value="1" aria-label="ระดับธีม สว่างถึงมืด"><span aria-hidden="true">☾</span><span class="tl" id="themeLbl">สว่าง</span></label>
         <button type="button" class="btn sm plain" data-act="go" data-v="help" title="คู่มือการใช้งานและสารบัญตัวย่อ">คู่มือ</button>
       </div>
     </div>
